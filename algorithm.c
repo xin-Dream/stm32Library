@@ -5,12 +5,6 @@
 #include "algorithm.h"
 
 /*
- * 引用的外部文件结构体-------------------------------------------------------------------------------------
- */
-extern Sensor_TypeDef sensors;
-extern Motor_TypeDef motor;
-
-/*
  * 小函数-------------------------------------------------------------------------------------
  * 虽然部分小函数库里有，为避免某些数据类型出差错，将某一部分函数重写
 */
@@ -89,7 +83,7 @@ int partition(int a[], int low, int high) {
  * @返回值： 返回当下哪个方向上可能有敌人
  * @备 注：无
  */
-int direction_judge(int a[]) {
+int direction_judge(uint32_t *a) {
     int length = sizeof(a);
     int range[length];
     int range_flag[length];
@@ -133,7 +127,7 @@ int direction_judge(int a[]) {
  *        去判断前侧目标偏移值，由于武术擂台项目对其控制精度要求不高，所以后期
  *        可能会用，所以前期做些准备
  */
-int varweight_mean(int a[]) {
+int varweight_mean(uint32_t *a) {
     int mean;
     int diff;
     double left_weight = 0.50;
@@ -170,112 +164,6 @@ int varweight_mean(int a[]) {
     right_weight = 0.5;
 
     return mean;
-}
-
-
-/*
- * 角度控制算法-------------------------------------------------------------------------------------
- */
-/**
- * @简 介： 角度绝对值控制函数
- * @参 数： 目标角度值，顺时针为正，逆时针为负
- * @返回值： 是否已到达目标角度
- * @备 注：无
- */
-int angle_position(int TargetAngle) {
-    //将角度值映射到0-65535
-    //其实这个映射为0-65535或0-360是一样的，只是较大的数值会提高一点控制精度
-    int TargetValue = TargetAngle * 182;    //182=(1/360)*65535
-    int bias;
-    int sum = 0;
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
-    while (1) {
-        bias = Get_Bias(sensors.YAW, TargetValue);
-        sum += bias;
-
-        motor_control(-bias * motor.turn_coff, bias * motor.turn_coff);
-        HAL_Delay(1);
-        if (my_abs(bias) < 600) {
-            break;
-        }
-    }
-
-    motor_control(0, 0);
-}
-
-/**
- * @简 介： 角度增量式控制函数
- * @参 数： 增量式目标角度值，顺时针为正，逆时针为负
- * @返回值： 是否已到达目标角度
- * @备 注： 无
- */
-int angle_incremental(int deviation) {
-    int target;
-    int bias;
-    int sum = 0;
-    int deviationValue = deviation * 182;//182=(1/360)*65535
-    int local_angle = sensors.YAW;
-
-    target = Get_Target(local_angle, deviationValue);
-//    motor.target = 32000;
-
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
-    while (1) {
-        bias = Get_Bias(sensors.YAW, target);
-        sum += bias;
-        motor_control(-bias * motor.turn_coff, bias * motor.turn_coff);
-        HAL_Delay(1);
-        if (my_abs(bias) < 600) {
-            break;
-        }
-    }
-    motor_control(0, 0);
-}
-
-
-int Get_Target(int start, int bias) {
-
-    int sum = start + bias;
-
-    if (sum < 0) {
-        sum += 65535;
-    } else if (sum > 65535) {
-        sum -= 65535;
-    } else {
-        return sum;
-    }
-}
-
-int Get_Bias(int start, int target) {
-    int bias;
-    bias = target - start;
-    if (bias < -32000) {
-        bias = bias + 65535;
-    } else if (bias > 32000) {
-        bias = bias - 65535;
-    }
-    return bias;
-}
-
-
-/*
- * PID控制器-------------------------------------------------------------------------------------
- */
-int PID_Control(int SetPoint, int CurrentPoint, PID_TypeDef pid_params) {
-    int result;
-
-    pid_params.LastError = CurrentPoint - SetPoint;
-    pid_params.SumError += pid_params.LastError;
-
-    result = pid_params.LastError * pid_params.Proportion +
-             pid_params.SumError * pid_params.Integral +
-             (pid_params.LastError - pid_params.PrevError) * pid_params.Derivative;
-
-    pid_params.PrevError = pid_params.LastError;
-
-    return result;
 }
 
 

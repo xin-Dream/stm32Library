@@ -16,21 +16,26 @@
 #include "motorControl.h"
 #include "communication.h"
 #include "algorithm.h"
+#include "Arena.h"
+
+/*
+ * --函数-----------------------------------------------------------------------------------------
+ */
+
+// 开启串口功能，具体函数在commuication文件中
+#define USART_ENABLE
+
+
 
 /*
  * --函数-----------------------------------------------------------------------------------------
  */
 void ParamsInit();
 
-void OLED_Show();
 
-void structParams();
 
-int limit_range(int speed, int limit_num);
 
-void ADCpartition();
 
-void judge(void);
 
 /*
  * --定义结构体-----------------------------------------------------------------------------------------
@@ -38,18 +43,8 @@ void judge(void);
 /**
   * @brief Uart Parm Init structure definition
   */
-typedef struct {
-    //串口中断用参数
-    uint8_t msg_buff[1024];
-    uint8_t *msg;
 
-    //DMA+空闲中断用参数
-    uint8_t receive_buff[255];
 
-} UARTParams_TypeDef;
-
-#define MAX_RECV_LEN    1024
-#define BUFFER_SIZE     255
 
 
 /**
@@ -58,32 +53,32 @@ typedef struct {
 #define ADC_CHANNEL_NUMBER  10
 typedef struct {
 
-    uint16_t PITCH;
-    uint16_t ROLL;
-    uint16_t YAW;
-    short Angle[3];
-    short T;
+	uint16_t PITCH;
+	uint16_t ROLL;
+	uint16_t YAW;
+	short Angle[3];
+	short T;
 
-    uint32_t ADC_Buff[ADC_CHANNEL_NUMBER];
-    uint32_t Range_around[4];
-    uint32_t Range_forward[2];
-    uint32_t Range_below[2];
-    uint32_t Gray[3];
+	uint32_t ADC_Buff[ADC_CHANNEL_NUMBER];
+	uint32_t Range_around[4];
+	uint32_t Range_forward[2];
+	uint32_t Range_below[2];
+	uint32_t Gray[3];
 
-    int motion_flag;
+	int motion_flag;
 } Sensor_TypeDef;
 
 /**
   * @brief PID Params Init structure definition
   */
 typedef struct {
-    __IO int32_t SetPoint;        //设定目标 Desired Value
-    __IO float SumError;        //误差累计
-    __IO float Proportion;    //比例常数 Proportional Const
-    __IO float Integral;        //积分常数 Integral Const
-    __IO float Derivative;    //微分常数 Derivative Const
-    __IO int LastError;        //Error[-1]
-    __IO int PrevError;        //Error[-2]
+	__IO int32_t SetPoint;        //设定目标 Desired Value
+	__IO float SumError;        //误差累计
+	__IO float Proportion;    //比例常数 Proportional Const
+	__IO float Integral;        //积分常数 Integral Const
+	__IO float Derivative;    //微分常数 Derivative Const
+	__IO int LastError;        //Error[-1]
+	__IO int PrevError;        //Error[-2]
 
 } PID_TypeDef;
 
@@ -92,22 +87,7 @@ typedef struct {
   * @brief motor Params Init structure definition
   */
 
-typedef struct {
-    //编码器
-    int L_encode_Dir;
-    int R_encode_Dir;
-    uint32_t L_encode;
-    uint32_t R_encode;
-    uint32_t lastCap;
-    uint32_t simSpeed;        //电机模拟速度，无单位，60/1000对应100
 
-    int speed;
-
-    int motion_flag;
-
-    float turn_coff;
-
-} Motor_TypeDef;
 
 #define MAXSPEED    600
 

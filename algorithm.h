@@ -33,22 +33,12 @@ int partition(int a[], int low, int high);
 /*
  * 变权重均值计算-------------------------------------------------------------------------------------
  */
-int varweight_mean(int a[]);
+int varweight_mean(uint32_t *a);
 
 /*
  * 方向判断函数-------------------------------------------------------------------------------------
  */
-int direction_judge(int a[]);
+int direction_judge(uint32_t *a);
 
-/*
- * 角度控制算法-------------------------------------------------------------------------------------
- */
-int angle_position(int TargetAngle);
-
-int angle_incremental(int deviation);
-
-int Get_Target(int start, int bias);
-
-int Get_Bias(int start, int target);
 
 #endif //INC_002_ARENA_ALGORITHM_H
